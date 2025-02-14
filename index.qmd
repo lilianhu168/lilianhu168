@@ -2,10 +2,21 @@
 title: "Lilian Hu"
 ---
 
-This is a Quarto website.
+---
+title: "Lilian Hu"
+about:
+  template: trestles
+  image: profile.jpg
+  links:
+    - icon: linkedin
+      text: Linkedin
+      href: https://www.linkedin.com/in/lilianhu168/
+    - icon: instagram 
+      text: Instagram 
+      href: https://www.instagram.com/_lilianhu/
+---
 
-To learn more about Quarto websites visit <https://quarto.org/docs/websites>.
+## Education
 
-```{r}
-1 + 1
-```
+Pomona College, Bachelors of Arts | Majoring in Economics and Data Science | Expected May 2027 
+
