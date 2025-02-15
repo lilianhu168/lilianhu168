@@ -9,12 +9,13 @@ website:
       - href: index.qmd
         text: Home
       - about.qmd
+      - Data Viz.qmd
       
 
 format:
   html:
-    theme: cosmo
-    css: styles.css
+    theme: lux 
+    css: bootstrap.min.css
     toc: true
 
 editor: visual
