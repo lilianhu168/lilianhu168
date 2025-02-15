@@ -21,7 +21,41 @@ By examining how SES influences college access and institutional stratification,
 ### Load the Data set
 
 ```{r, echo=TRUE, eval=FALSE}
+library(tidyverse)
+library(tidytuesdayR)
+install.packages("ggplot2")
+
+library(ggplot2)
+
 tuesdata <- tidytuesdayR::tt_load('2024-09-10')
 college_admissions <- tuesdata$college_admissions
 head(college_admissions)
 ```
+### Parental Income vs. College Attendance Rate
+
+By first examining the family house hold income's relationship with the College attendance rate, 
+
+```{r}
+ggplot(college_admissions |>
+    filter(!is.na(rel_attend) & !is.na(par_income_bin)) |>
+    mutate(tier = factor(tier, levels = c(
+      "Highly selective private", 
+      "Highly selective public", 
+      "Ivy Plus", 
+      "Selective private", 
+      "Selective public", 
+      "Other elite schools (public and private)" 
+    ))), 
+  aes(x = as.factor(par_income_bin), y = rel_attend, fill = tier)
+) +
+  geom_boxplot( alpha = 0.7) +
+  facet_wrap(~tier, scales = "free_y", ncol = 3) + 
+  labs(title = "Parental Income vs. Relative Attendance by College Tier",
+       x = "Parental Income Percentile", 
+       y = "Relative Attendance Rate") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1), legend.position = "none") 
+
+
+```
+
