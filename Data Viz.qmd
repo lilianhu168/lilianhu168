@@ -1,0 +1,27 @@
+---
+title: "Data Visualization"
+description: "Exploring trends using TidyTuesday data"
+author: "Lilian Hu"
+date: "February 12, 2025"
+format: html
+code-copy: true
+---
+
+
+## College Admissions Analysis
+
+The following analysis explores trends in college admissions using TidyTuesday data.
+
+The overarching question this analysis aims to asses is: How does socioeconomic status influence college access and institutional stratification in higher education.
+
+Understanding the impact of individual's and family's socioeconomic status (SES) on college access and institution stratification is important for addressing educational inequalities and promoting social mobility. Attending selective and prestigious institutions oftem provides a greater access to opportuntities, resources and networks, perpetuating cycles of privilege. Conversely, lower-income students frequently face barriers such as financial constraints, limited access to information, and inadequate preparation, which hinder their ability to enroll in and complete for higher education.
+
+By examining how SES influences college access and institutional stratification, this analysis aims to inform policies and practices that promote equity in higher education.
+
+### Load the Data set
+
+```{r, echo=TRUE, eval=FALSE}
+tuesdata <- tidytuesdayR::tt_load('2024-09-10')
+college_admissions <- tuesdata$college_admissions
+head(college_admissions)
+```
