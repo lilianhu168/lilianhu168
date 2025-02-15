@@ -16,7 +16,6 @@ format:
   html:
     theme: lux 
     css: bootstrap.min.css
-    toc: true
 
 editor: visual
 
