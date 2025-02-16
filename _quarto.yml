@@ -3,19 +3,21 @@ project:
   output-dir: docs
 
 website:
-  title: "lilianhu168.github.io"
+  title: "Lilian Hu"
   navbar:
     left:
       - href: index.qmd
         text: Home
-      - about.qmd
-      - Data Viz.qmd
-      
+      - text: "Data Visualization"
+        menu:
+          - text: "College Admissions Analysis"
+            href: college_admissions.qmd
+          - text: "Registered Nurses Analysis"
+            href: Registered_Nurses.qmd
 
 format:
   html:
-    theme: lux 
+    theme: lux
     css: bootstrap.min.css
 
 editor: visual
-
