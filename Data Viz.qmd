@@ -12,28 +12,22 @@ code-copy: true
 
 The following analysis explores trends in college admissions using TidyTuesday data.
 
-The overarching question this analysis aims to asses is: How does socioeconomic status influence college access and institutional stratification in higher education.
-
-Understanding the impact of individual's and family's socioeconomic status (SES) on college access and institution stratification is important for addressing educational inequalities and promoting social mobility. Attending selective and prestigious institutions oftem provides a greater access to opportuntities, resources and networks, perpetuating cycles of privilege. Conversely, lower-income students frequently face barriers such as financial constraints, limited access to information, and inadequate preparation, which hinder their ability to enroll in and complete for higher education.
-
-By examining how SES influences college access and institutional stratification, this analysis aims to inform policies and practices that promote equity in higher education.
-
 ### Load the Data set
-
-```{r, echo=TRUE, eval=FALSE}
+```{r, loading packages}
 library(tidyverse)
 library(tidytuesdayR)
-install.packages("ggplot2")
+```
 
-library(ggplot2)
-
+```{r, ladoing dataset }
 tuesdata <- tidytuesdayR::tt_load('2024-09-10')
 college_admissions <- tuesdata$college_admissions
-head(college_admissions)
 ```
-### Parental Income vs. College Attendance Rate
 
-By first examining the family house hold income's relationship with the College attendance rate, 
+### Parental Income and College Attendance Rates Across Different College Tiers
+
+The dataset used in this analysis examines the relationship between parental income percentile and relative college attendance rates across different tiers of higher education institutions. These tiers include Ivy Plus schools, highly selective public and private colleges, selective institutions, and other elite schools. The key question driving this analysis is: How does family income influence the likelihood of attending colleges of varying selectivity?
+
+To explore this, I have visualized relative attendance rates by income percentile for each college tier using boxplots. 
 
 ```{r}
 ggplot(college_admissions |>
@@ -58,4 +52,7 @@ ggplot(college_admissions |>
 
 
 ```
+### Analysis 
+
+This analysis highlights how wealthier families have a disproportionate representation in elite higher education institutions, which has significant implications for economic mobility and access to top-tier opportunities. Further research could explore whether financial aid policies, standardized test requirements, or legacy admissions contribute to these disparities. A deeper investigation into graduation outcomes and career trajectories by income group could also help determine whether attending elite institutions translates into better financial prospects for students from different backgrounds.
 
