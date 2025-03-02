@@ -14,6 +14,10 @@ website:
             href: college_admissions.qmd
           - text: "Registered Nurses Analysis"
             href: Registered_Nurses.qmd
+      - text: "Text Analysis"
+        menu:
+          - text: "Twitter Finance Analysis"
+            href: TwitterFinance.qmd
 
 format:
   html:
