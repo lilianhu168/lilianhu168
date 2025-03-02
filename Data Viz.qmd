@@ -1,6 +1,6 @@
 ---
 title: "Data Visualization"
-description: "Exploring trends using TidyTuesday data"
+description: "Project 1: Exploring trends using TidyTuesday data"
 author: "Lilian Hu"
 date: "February 12, 2025"
 format: html
