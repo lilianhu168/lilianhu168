@@ -21,8 +21,4 @@ about:
 
 ## Education
 
-Pomona College | Bachelors of Arts | Economics and Data Science
-
-
-
-
+Pomona College \| Bachelors of Arts \| Economics and Data Science
