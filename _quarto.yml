@@ -18,7 +18,10 @@ website:
         menu:
           - text: "Twitter Finance Analysis"
             href: TwitterFinance.qmd
-
+      - text: "Simulation Study"
+        menu: 
+          - text: "100-door Monty Hall Simulation"
+            href: Monty_Hall.qmd
 format:
   html:
     theme: lux
