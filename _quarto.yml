@@ -22,6 +22,11 @@ website:
         menu: 
           - text: "100-door Monty Hall Simulation"
             href: Monty_Hall.qmd
+      - text: "Data Ethics"
+        menu:
+          - text: "Ethics of Algorithmic Sentiment Analysis"
+            href: Algorithmic_Sentiment_Analysis.qmd
+            
 format:
   html:
     theme: lux
