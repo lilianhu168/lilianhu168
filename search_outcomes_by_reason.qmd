@@ -1,0 +1,8 @@
+---
+title: "Vehicle Search Outcomes by Stop Reaso"
+description: "Project 5: Analyzing Search Outcomes with SQL"
+author: "Lilian Hu"
+date: "February 12, 2025"
+format: html
+code-copy: true
+---
