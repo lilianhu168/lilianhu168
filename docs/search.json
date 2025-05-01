@@ -207,6 +207,6 @@
     "href": "search_outcomes_by_reason.html",
     "title": "Vehicle Search Outcomes by Stop Reaso",
     "section": "",
-    "text": "INTRODUCTION"
+    "text": "INTRODUCTION\nTraffic‐stop searches are resource‐intensive and raise important questions about policing efficiency and civil rights. In this project, I investigate which stop reasons—such as equipment violations, speeding, or consent—yield the highest contraband‐find (“hit”) rates. I will use SQL to query and combine data from three SOPP tables (California Highway Patrol, LAPD, and Florida Highway Patrol), categorizing reasons with CASE statements and computing hit rates with aggregation functions. The analysis will include at least two well‐labeled tables or plots and rely exclusively on SQL (e.g. UNION ALL, WHERE, GROUP BY, HAVING) for all data wrangling."
   }
 ]
