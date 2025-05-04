@@ -22,11 +22,16 @@ website:
         menu: 
           - text: "100-door Monty Hall Simulation"
             href: Monty_Hall.qmd
+          - text: "Vehicle Search Outcomes by Reason"
+            href: search_outcomes_by_reason.qmd
       - text: "Data Ethics"
         menu:
           - text: "Ethics of Algorithmic Sentiment Analysis"
             href: Algorithmic_Sentiment_Analysis.qmd
-            
+      - text: "SQL Analysis"
+        menu: 
+          - text: "Vehicle Search Outcomes by Reason"
+            href: search_outcomes_by_reason.qmd
 format:
   html:
     theme: lux

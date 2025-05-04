@@ -1,17 +1,279 @@
 ---
-title: "Vehicle Search Outcomes by Stop Reaso"
-description: "Project 5: Analyzing Search Outcomes with SQL"
+title: "Search Outcomes by Stop Reason"
+description: "Project 5: Contraband Hit Rates across AZ‑ST, SF‑PD & OAK‑PD"
 author: "Lilian Hu"
 date: "February 12, 2025"
 format: html
 code-copy: true
+execute:
+  warning: false 
+  error: false
 ---
 
-### INTRODUCTION 
-Traffic‐stop searches are resource‐intensive and raise important questions about policing efficiency and civil rights. In this project, I investigate which stop reasons—such as equipment violations, speeding, or consent—yield the highest contraband‐find (“hit”) rates. I will use SQL to query and combine data from three SOPP tables (California Highway Patrol, LAPD, and Florida Highway Patrol), categorizing reasons with CASE statements and computing hit rates with aggregation functions. The analysis will include at least two well‐labeled tables or plots and rely exclusively on SQL (e.g. UNION ALL, WHERE, GROUP BY, HAVING) for all data wrangling.
+### Introduction
 
+In this analysis, I will use SQL to determine **which search bases**—**Consent**, **Probable cause**, or **Other**—produce the highest contraband‐find rates. I connect securely to the SOPP “traffic” database and pull from **three tables**: Arizona State Police (AZ‑ST), San Francisco PD (SF‑PD), and Oakland PD (OAK‑PD). All data wrangling is done in SQL chunks (using `UNION ALL`, `CASE`, `WHERE`, `GROUP BY`, `HAVING`, `ORDER BY`, `SUM`, `COUNT`), and visualized in R. My goal is to present **two well‐labeled plots** and interpret the policy‑relevant insights.  
+
+- **Arizona State Police** (`az_statewide_2020_04_01`)  \n
+- **San Francisco PD** (`ca_san_francisco_2020_04_01`)  \n
+- **Oakland PD** (`ca_oakland_2020_04_01`)  \n
+
+The resulting summary table and bar charts will show how effectively each search basis produces contraband finds
 
 ```{r}
+library(DBI)
+con_traffic <- dbConnect(
+  RMariaDB::MariaDB(),
+  dbname   = "traffic",
+  host     = Sys.getenv("TRAFFIC_HOST"),
+  user     = Sys.getenv("TRAFFIC_USER"),
+  password = Sys.getenv("TRAFFIC_PWD")
+)
+```
+
+
+
+## Data Wrangling 
+
+### Overall Hit‑Rate by Search Basis
+```{sql, connection=con_traffic}
+SELECT
+  reason_group,
+  COUNT(*)                                            AS total_searches,
+  SUM(contraband_found)                               AS hits,
+  ROUND(100.0 * SUM(contraband_found) / COUNT(*), 1)  AS hit_rate_pct
+FROM (
+  SELECT
+    CASE
+      WHEN search_basis = 'Consent'           THEN 'Consent'
+      WHEN search_basis LIKE '%Probable%'     THEN 'Probable cause'
+      ELSE 'Other'
+    END                                       AS reason_group,
+    contraband_found
+  FROM az_statewide_2020_04_01
+  WHERE search_conducted = 1
+    AND date BETWEEN '2016-01-01' AND '2019-12-31'
+
+  UNION ALL
+
+  SELECT
+    CASE
+      WHEN search_basis = 'Consent'           THEN 'Consent'
+      WHEN search_basis LIKE '%Probable%'     THEN 'Probable cause'
+      ELSE 'Other'
+    END,
+    contraband_found
+  FROM ca_san_francisco_2020_04_01
+  WHERE search_conducted = 1
+    AND date BETWEEN '2016-01-01' AND '2019-12-31'
+
+  UNION ALL
+
+  SELECT
+    CASE
+      WHEN search_basis = 'Consent'           THEN 'Consent'
+      WHEN search_basis LIKE '%Probable%'     THEN 'Probable cause'
+      ELSE 'Other'
+    END,
+    contraband_found
+  FROM ca_oakland_2020_04_01
+  WHERE search_conducted = 1
+    AND date BETWEEN '2016-01-01' AND '2019-12-31'
+) AS all_searches
+GROUP BY reason_group
+HAVING COUNT(*) >= 100
+ORDER BY hit_rate_pct DESC;
+
+```
+Consent searches (N=9,837) yield contraband 82.7% of the time—slightly higher than probable‑cause searches (N=101,848; hit‐rate=81.0%), and far above other reasons (N=15,797; hit‐rate=26.0%).
+
+### Hit‑Rate by Agency & Search Basis
+
+```{sql, connection=con_traffic}
+SELECT
+  agency,
+  reason_group,
+  COUNT(*)                                            AS total_searches,
+  SUM(contraband_found)                               AS hits,
+  ROUND(100.0 * SUM(contraband_found) / COUNT(*), 1)  AS hit_rate_pct
+FROM (
+  SELECT
+    'AZ‑ST' AS agency,
+    CASE
+      WHEN search_basis = 'Consent'           THEN 'Consent'
+      WHEN search_basis LIKE '%Probable%'     THEN 'Probable cause'
+      ELSE 'Other'
+    END                                       AS reason_group,
+    contraband_found
+  FROM az_statewide_2020_04_01
+  WHERE search_conducted = 1
+    AND date BETWEEN '2016-01-01' AND '2019-12-31'
+
+  UNION ALL
+
+  SELECT
+    'SF‑PD' AS agency,
+    CASE
+      WHEN search_basis = 'Consent'           THEN 'Consent'
+      WHEN search_basis LIKE '%Probable%'     THEN 'Probable cause'
+      ELSE 'Other'
+    END,
+    contraband_found
+  FROM ca_san_francisco_2020_04_01
+  WHERE search_conducted = 1
+    AND date BETWEEN '2016-01-01' AND '2019-12-31'
+
+  UNION ALL
+
+  SELECT
+    'OAK‑PD' AS agency,
+    CASE
+      WHEN search_basis = 'Consent'           THEN 'Consent'
+      WHEN search_basis LIKE '%Probable%'     THEN 'Probable cause'
+      ELSE 'Other'
+    END,
+    contraband_found
+  FROM ca_oakland_2020_04_01
+  WHERE search_conducted = 1
+    AND date BETWEEN '2016-01-01' AND '2019-12-31'
+) AS all_searches
+GROUP BY agency, reason_group
+HAVING COUNT(*) >= 50
+ORDER BY agency, hit_rate_pct DESC;
 
 ```
 
+AZ‑ST: exceptionally high hit‐rates on both Consent (88.1%) and Probable cause (83.9%). \n
+OAK‑PD: moderate productivity on Probable cause (36.9%) and Other (26.6%), but very low yield on Consent (12.5%). \n
+SF‑PD: only Consent (13.5%) and Other (21.2%) pass the 50‐search cutoff; Probable‑cause searches were too rare to include. \n
+
+
+## Graphs 
+
+### Plot 1: Overall Contraband Hit Rate by Search Basis
+```{r}
+df_overall <- dbGetQuery(con_traffic, "
+SELECT
+  reason_group,
+  ROUND(100.0 * SUM(contraband_found) / COUNT(*), 1) AS hit_rate_pct
+FROM (
+  SELECT
+    CASE
+      WHEN search_basis = 'Consent'           THEN 'Consent'
+      WHEN search_basis LIKE '%Probable%'     THEN 'Probable cause'
+      ELSE 'Other'
+    END AS reason_group,
+    contraband_found
+  FROM az_statewide_2020_04_01 WHERE search_conducted=1 AND date BETWEEN '2016-01-01' AND '2019-12-31'
+  UNION ALL
+  SELECT CASE
+      WHEN search_basis = 'Consent' THEN 'Consent'
+      WHEN search_basis LIKE '%Probable%' THEN 'Probable cause'
+      ELSE 'Other'
+    END,
+    contraband_found
+  FROM ca_san_francisco_2020_04_01 WHERE search_conducted=1 AND date BETWEEN '2016-01-01' AND '2019-12-31'
+  UNION ALL
+  SELECT CASE
+      WHEN search_basis = 'Consent' THEN 'Consent'
+      WHEN search_basis LIKE '%Probable%' THEN 'Probable cause'
+      ELSE 'Other'
+    END,
+    contraband_found
+  FROM ca_oakland_2020_04_01 WHERE search_conducted=1 AND date BETWEEN '2016-01-01' AND '2019-12-31'
+) AS t
+GROUP BY reason_group
+ORDER BY hit_rate_pct DESC;
+")
+
+library(ggplot2)
+ggplot(df_overall, aes(
+  x = reorder(reason_group, -hit_rate_pct),
+  y = hit_rate_pct,
+  fill = reason_group
+)) +
+  geom_col() +
+  scale_fill_brewer(palette = "Set3") +
+  labs(
+    title = "Overall Contraband Hit Rate by Search Basis",
+    x     = "Search Basis",
+    y     = "Hit Rate (%)",
+    fill  = "Search Basis"
+  ) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 25, hjust = 1))
+
+```
+### Plot 2: Contraband Hit Rate by Search Basis, by Agency
+```{r}
+df_agency <- dbGetQuery(con_traffic, "
+SELECT
+  agency,
+  reason_group,
+  ROUND(100.0 * SUM(contraband_found) / COUNT(*), 1) AS hit_rate_pct
+FROM (
+  SELECT
+    'AZ‑ST' AS agency,
+    CASE
+      WHEN search_basis = 'Consent'       THEN 'Consent'
+      WHEN search_basis LIKE '%Probable%' THEN 'Probable cause'
+      ELSE 'Other'
+    END AS reason_group,
+    contraband_found
+  FROM az_statewide_2020_04_01 WHERE search_conducted=1 AND date BETWEEN '2016-01-01' AND '2019-12-31'
+  UNION ALL
+  SELECT
+    'SF‑PD',
+    CASE
+      WHEN search_basis = 'Consent'       THEN 'Consent'
+      WHEN search_basis LIKE '%Probable%' THEN 'Probable cause'
+      ELSE 'Other'
+    END,
+    contraband_found
+  FROM ca_san_francisco_2020_04_01 WHERE search_conducted=1 AND date BETWEEN '2016-01-01' AND '2019-12-31'
+  UNION ALL
+  SELECT
+    'OAK‑PD',
+    CASE
+      WHEN search_basis = 'Consent'       THEN 'Consent'
+      WHEN search_basis LIKE '%Probable%' THEN 'Probable cause'
+      ELSE 'Other'
+    END,
+    contraband_found
+  FROM ca_oakland_2020_04_01 WHERE search_conducted=1 AND date BETWEEN '2016-01-01' AND '2019-12-31'
+) AS t
+GROUP BY agency, reason_group
+HAVING COUNT(*) >= 50
+ORDER BY agency, hit_rate_pct DESC;
+")
+
+ggplot(df_agency, aes(
+  x    = reorder(reason_group, -hit_rate_pct),
+  y    = hit_rate_pct,
+  fill = reason_group
+)) +
+  geom_col(show.legend = FALSE) +
+  scale_fill_brewer(palette = "Set2") +
+  facet_wrap(~ agency) +
+  labs(
+    title = "Contraband Hit Rate by Search Basis, by Agency",
+    x     = "Search Basis",
+    y     = "Hit Rate (%)"
+  ) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 25, hjust = 1))
+```
+## Discussion 
+The results reveal two clear patterns. First, across all three jurisdictions, searches based on Consent and Probable cause are markedly more productive than those based on Other reasons: both Consent and Probable‑cause searches uncover contraband in over 80% of cases overall, whereas Other searches yield contraband only about a quarter of the time. This suggests that when officers have clear legal grounds,either explicit consent or demonstrable probable cause, their search decisions are highly effective at finding illicit items.
+
+Second, there is substantial variation between agencies. The Arizona State Police (AZ‑ST) consistently achieves the highest hit rates, nearly 88% for Consent searches and 84% for Probable‑cause searches, indicating very efficient use of search authority. By contrast, Oakland PD (OAK‑PD) sees much lower returns: only about 37% of Probable‑cause searches and 13% of Consent searches uncover contraband, and San Francisco PD (SF‑PD) shows similarly modest yields on the bases it uses most frequently. These discrepancies likely reflect differences in training, departmental policy, or how rigorously officers document and execute search bases.
+
+Taken together, these findings imply that refining training around identifying and exercising valid search grounds could both improve contraband detection and minimize unnecessary intrusions. Agencies with low Consent‑search yields might prioritize clearer guidelines on when consent is sufficiently informed and voluntary, while all departments could benefit from sharing best practices in articulating probable‑cause justifications. Future work should expand this analysis to additional states, disaggregate the broad “Other” category into its component reasons, and control for driver demographics and stop context to better understand the drivers of these effectiveness gaps.
+
+## Conclusion 
+Using SQL exclusively for data wrangling across three SOPP tables and employing 7 distinct SQL keywords (UNION ALL, CASE, WHERE, GROUP BY, HAVING, ORDER BY, SUM), I produced two visualizations demonstrating that Consent and Probable‑cause stops are far more likely to uncover contraband than Other stops. Significant variations across AZ‑ST, OAK‑PD, and SF‑PD highlight the need for tailored policy and training to improve search efficiency and reduce unnecessary intrusions.
+
+## References 
+Pierson, E., Simoiu, C., Overgoor, J., Corbett‑Davies, S., Joo, J., Goel, S., & Huq, A. (2020).
+A large‑scale analysis of racial disparities in police stops across the United States.
+Stanford Open Policing Project. Retrieved from https://openpolicing.stanford.edu/

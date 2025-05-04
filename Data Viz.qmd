@@ -7,12 +7,12 @@ format: html
 code-copy: true
 ---
 
-
 ## College Admissions Analysis
 
 The following analysis explores trends in college admissions using TidyTuesday data.
 
 ### Load the Data set
+
 ```{r, loading packages}
 library(tidyverse)
 library(tidytuesdayR)
@@ -27,7 +27,7 @@ college_admissions <- tuesdata$college_admissions
 
 The dataset used in this analysis examines the relationship between parental income percentile and relative college attendance rates across different tiers of higher education institutions. These tiers include Ivy Plus schools, highly selective public and private colleges, selective institutions, and other elite schools. The key question driving this analysis is: How does family income influence the likelihood of attending colleges of varying selectivity?
 
-To explore this, I have visualized relative attendance rates by income percentile for each college tier using boxplots. 
+To explore this, I have visualized relative attendance rates by income percentile for each college tier using boxplots.
 
 ```{r}
 ggplot(college_admissions |>
@@ -52,7 +52,7 @@ ggplot(college_admissions |>
 
 
 ```
-### Analysis 
+
+### Analysis
 
 This analysis highlights how wealthier families have a disproportionate representation in elite higher education institutions, which has significant implications for economic mobility and access to top-tier opportunities. Further research could explore whether financial aid policies, standardized test requirements, or legacy admissions contribute to these disparities. A deeper investigation into graduation outcomes and career trajectories by income group could also help determine whether attending elite institutions translates into better financial prospects for students from different backgrounds.
-

@@ -8,9 +8,9 @@
 
 <meta name="author" content="Lilian Hu">
 <meta name="dcterms.date" content="2025-02-12">
-<meta name="description" content="Project 5: Analyzing Search Outcomes with SQL">
+<meta name="description" content="Project 5: Contraband Hit Rates across AZ‑ST, SF‑PD &amp; OAK‑PD">
 
-<title>Lilian Hu - Vehicle Search Outcomes by Stop Reaso</title>
+<title>Lilian Hu - Search Outcomes by Stop Reason</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -22,6 +22,40 @@ ul.task-list li input[type="checkbox"] {
   width: 0.8em;
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
 </style>
 
@@ -122,6 +156,10 @@ ul.task-list li input[type="checkbox"] {
     <a class="dropdown-item" href="./Monty_Hall.html" rel="" target="">
  <span class="dropdown-text">100-door Monty Hall Simulation</span></a>
   </li>  
+        <li>
+    <a class="dropdown-item" href="./search_outcomes_by_reason.html" rel="" target="">
+ <span class="dropdown-text">Vehicle Search Outcomes by Reason</span></a>
+  </li>  
     </ul>
   </li>
   <li class="nav-item dropdown ">
@@ -132,6 +170,17 @@ ul.task-list li input[type="checkbox"] {
         <li>
     <a class="dropdown-item" href="./Algorithmic_Sentiment_Analysis.html" rel="" target="">
  <span class="dropdown-text">Ethics of Algorithmic Sentiment Analysis</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-sql-analysis" role="button" data-bs-toggle="dropdown" aria-expanded="false" rel="" target="">
+ <span class="menu-text">SQL Analysis</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-sql-analysis">    
+        <li>
+    <a class="dropdown-item" href="./search_outcomes_by_reason.html" rel="" target="">
+ <span class="dropdown-text">Vehicle Search Outcomes by Reason</span></a>
   </li>  
     </ul>
   </li>
@@ -152,12 +201,12 @@ ul.task-list li input[type="checkbox"] {
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">Vehicle Search Outcomes by Stop Reaso</h1>
+<h1 class="title">Search Outcomes by Stop Reason</h1>
 </div>
 
 <div>
   <div class="description">
-    Project 5: Analyzing Search Outcomes with SQL
+    Project 5: Contraband Hit Rates across AZ‑ST, SF‑PD &amp; OAK‑PD
   </div>
 </div>
 
@@ -185,8 +234,372 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 <section id="introduction" class="level3">
-<h3 class="anchored" data-anchor-id="introduction">INTRODUCTION</h3>
-<p>Traffic‐stop searches are resource‐intensive and raise important questions about policing efficiency and civil rights. In this project, I investigate which stop reasons—such as equipment violations, speeding, or consent—yield the highest contraband‐find (“hit”) rates. I will use SQL to query and combine data from three SOPP tables (California Highway Patrol, LAPD, and Florida Highway Patrol), categorizing reasons with CASE statements and computing hit rates with aggregation functions. The analysis will include at least two well‐labeled tables or plots and rely exclusively on SQL (e.g.&nbsp;UNION ALL, WHERE, GROUP BY, HAVING) for all data wrangling.</p>
+<h3 class="anchored" data-anchor-id="introduction">Introduction</h3>
+<p>In this analysis, I will use SQL to determine <strong>which search bases</strong>—<strong>Consent</strong>, <strong>Probable cause</strong>, or <strong>Other</strong>—produce the highest contraband‐find rates. I connect securely to the SOPP “traffic” database and pull from <strong>three tables</strong>: Arizona State Police (AZ‑ST), San Francisco PD (SF‑PD), and Oakland PD (OAK‑PD). All data wrangling is done in SQL chunks (using <code>UNION ALL</code>, <code>CASE</code>, <code>WHERE</code>, <code>GROUP BY</code>, <code>HAVING</code>, <code>ORDER BY</code>, <code>SUM</code>, <code>COUNT</code>), and visualized in R. My goal is to present <strong>two well‐labeled plots</strong> and interpret the policy‑relevant insights.</p>
+<ul>
+<li><strong>Arizona State Police</strong> (<code>az_statewide_2020_04_01</code>) </li>
+<li><strong>San Francisco PD</strong> (<code>ca_san_francisco_2020_04_01</code>) </li>
+<li><strong>Oakland PD</strong> (<code>ca_oakland_2020_04_01</code>) </li>
+</ul>
+<p>The resulting summary table and bar charts will show how effectively each search basis produces contraband finds</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(DBI)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>con_traffic <span class="ot">&lt;-</span> <span class="fu">dbConnect</span>(</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  RMariaDB<span class="sc">::</span><span class="fu">MariaDB</span>(),</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">dbname   =</span> <span class="st">"traffic"</span>,</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">host     =</span> <span class="fu">Sys.getenv</span>(<span class="st">"TRAFFIC_HOST"</span>),</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">user     =</span> <span class="fu">Sys.getenv</span>(<span class="st">"TRAFFIC_USER"</span>),</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">password =</span> <span class="fu">Sys.getenv</span>(<span class="st">"TRAFFIC_PWD"</span>)</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="data-wrangling" class="level2">
+<h2 class="anchored" data-anchor-id="data-wrangling">Data Wrangling</h2>
+<section id="overall-hitrate-by-search-basis" class="level3">
+<h3 class="anchored" data-anchor-id="overall-hitrate-by-search-basis">Overall Hit‑Rate by Search Basis</h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode sql code-with-copy"><code class="sourceCode sql"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  reason_group,</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">COUNT</span>(<span class="op">*</span>)                                            <span class="kw">AS</span> total_searches,</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">SUM</span>(contraband_found)                               <span class="kw">AS</span> hits,</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ROUND</span>(<span class="fl">100.0</span> <span class="op">*</span> <span class="fu">SUM</span>(contraband_found) <span class="op">/</span> <span class="fu">COUNT</span>(<span class="op">*</span>), <span class="dv">1</span>)  <span class="kw">AS</span> hit_rate_pct</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="kw">FROM</span> (</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>  <span class="kw">SELECT</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">CASE</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>      <span class="cf">WHEN</span> search_basis <span class="op">=</span> <span class="st">'Consent'</span>           <span class="cf">THEN</span> <span class="st">'Consent'</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>      <span class="cf">WHEN</span> search_basis <span class="kw">LIKE</span> <span class="st">'%Probable%'</span>     <span class="cf">THEN</span> <span class="st">'Probable cause'</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>      <span class="cf">ELSE</span> <span class="st">'Other'</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>    <span class="cf">END</span>                                       <span class="kw">AS</span> reason_group,</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>    contraband_found</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>  <span class="kw">FROM</span> az_statewide_2020_04_01</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>  <span class="kw">WHERE</span> search_conducted <span class="op">=</span> <span class="dv">1</span></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>    <span class="kw">AND</span> <span class="dt">date</span> <span class="kw">BETWEEN</span> <span class="st">'2016-01-01'</span> <span class="kw">AND</span> <span class="st">'2019-12-31'</span></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>  <span class="kw">UNION</span> <span class="kw">ALL</span></span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>  <span class="kw">SELECT</span></span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>    <span class="cf">CASE</span></span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>      <span class="cf">WHEN</span> search_basis <span class="op">=</span> <span class="st">'Consent'</span>           <span class="cf">THEN</span> <span class="st">'Consent'</span></span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>      <span class="cf">WHEN</span> search_basis <span class="kw">LIKE</span> <span class="st">'%Probable%'</span>     <span class="cf">THEN</span> <span class="st">'Probable cause'</span></span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>      <span class="cf">ELSE</span> <span class="st">'Other'</span></span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>    <span class="cf">END</span>,</span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>    contraband_found</span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a>  <span class="kw">FROM</span> ca_san_francisco_2020_04_01</span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>  <span class="kw">WHERE</span> search_conducted <span class="op">=</span> <span class="dv">1</span></span>
+<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a>    <span class="kw">AND</span> <span class="dt">date</span> <span class="kw">BETWEEN</span> <span class="st">'2016-01-01'</span> <span class="kw">AND</span> <span class="st">'2019-12-31'</span></span>
+<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a>  <span class="kw">UNION</span> <span class="kw">ALL</span></span>
+<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a>  <span class="kw">SELECT</span></span>
+<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a>    <span class="cf">CASE</span></span>
+<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a>      <span class="cf">WHEN</span> search_basis <span class="op">=</span> <span class="st">'Consent'</span>           <span class="cf">THEN</span> <span class="st">'Consent'</span></span>
+<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a>      <span class="cf">WHEN</span> search_basis <span class="kw">LIKE</span> <span class="st">'%Probable%'</span>     <span class="cf">THEN</span> <span class="st">'Probable cause'</span></span>
+<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a>      <span class="cf">ELSE</span> <span class="st">'Other'</span></span>
+<span id="cb2-38"><a href="#cb2-38" aria-hidden="true" tabindex="-1"></a>    <span class="cf">END</span>,</span>
+<span id="cb2-39"><a href="#cb2-39" aria-hidden="true" tabindex="-1"></a>    contraband_found</span>
+<span id="cb2-40"><a href="#cb2-40" aria-hidden="true" tabindex="-1"></a>  <span class="kw">FROM</span> ca_oakland_2020_04_01</span>
+<span id="cb2-41"><a href="#cb2-41" aria-hidden="true" tabindex="-1"></a>  <span class="kw">WHERE</span> search_conducted <span class="op">=</span> <span class="dv">1</span></span>
+<span id="cb2-42"><a href="#cb2-42" aria-hidden="true" tabindex="-1"></a>    <span class="kw">AND</span> <span class="dt">date</span> <span class="kw">BETWEEN</span> <span class="st">'2016-01-01'</span> <span class="kw">AND</span> <span class="st">'2019-12-31'</span></span>
+<span id="cb2-43"><a href="#cb2-43" aria-hidden="true" tabindex="-1"></a>) <span class="kw">AS</span> all_searches</span>
+<span id="cb2-44"><a href="#cb2-44" aria-hidden="true" tabindex="-1"></a><span class="kw">GROUP</span> <span class="kw">BY</span> reason_group</span>
+<span id="cb2-45"><a href="#cb2-45" aria-hidden="true" tabindex="-1"></a><span class="kw">HAVING</span> <span class="fu">COUNT</span>(<span class="op">*</span>) <span class="op">&gt;=</span> <span class="dv">100</span></span>
+<span id="cb2-46"><a href="#cb2-46" aria-hidden="true" tabindex="-1"></a><span class="kw">ORDER</span> <span class="kw">BY</span> hit_rate_pct <span class="kw">DESC</span>;</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="knitsql-table">
+<table class="table table-sm table-striped small">
+<caption>3 records</caption>
+<thead>
+<tr class="header">
+<th style="text-align: left;">reason_group</th>
+<th style="text-align: right;">total_searches</th>
+<th style="text-align: right;">hits</th>
+<th style="text-align: right;">hit_rate_pct</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Consent</td>
+<td style="text-align: right;">9837</td>
+<td style="text-align: right;">8137</td>
+<td style="text-align: right;">82.7</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Probable cause</td>
+<td style="text-align: right;">101848</td>
+<td style="text-align: right;">82513</td>
+<td style="text-align: right;">81.0</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Other</td>
+<td style="text-align: right;">15797</td>
+<td style="text-align: right;">4110</td>
+<td style="text-align: right;">26.0</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>Consent searches (N=9,837) yield contraband 82.7% of the time—slightly higher than probable‑cause searches (N=101,848; hit‐rate=81.0%), and far above other reasons (N=15,797; hit‐rate=26.0%).</p>
+</section>
+<section id="hitrate-by-agency-search-basis" class="level3">
+<h3 class="anchored" data-anchor-id="hitrate-by-agency-search-basis">Hit‑Rate by Agency &amp; Search Basis</h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode sql code-with-copy"><code class="sourceCode sql"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  agency,</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  reason_group,</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">COUNT</span>(<span class="op">*</span>)                                            <span class="kw">AS</span> total_searches,</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">SUM</span>(contraband_found)                               <span class="kw">AS</span> hits,</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ROUND</span>(<span class="fl">100.0</span> <span class="op">*</span> <span class="fu">SUM</span>(contraband_found) <span class="op">/</span> <span class="fu">COUNT</span>(<span class="op">*</span>), <span class="dv">1</span>)  <span class="kw">AS</span> hit_rate_pct</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="kw">FROM</span> (</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>  <span class="kw">SELECT</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>    <span class="st">'AZ‑ST'</span> <span class="kw">AS</span> agency,</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>    <span class="cf">CASE</span></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>      <span class="cf">WHEN</span> search_basis <span class="op">=</span> <span class="st">'Consent'</span>           <span class="cf">THEN</span> <span class="st">'Consent'</span></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>      <span class="cf">WHEN</span> search_basis <span class="kw">LIKE</span> <span class="st">'%Probable%'</span>     <span class="cf">THEN</span> <span class="st">'Probable cause'</span></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>      <span class="cf">ELSE</span> <span class="st">'Other'</span></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>    <span class="cf">END</span>                                       <span class="kw">AS</span> reason_group,</span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>    contraband_found</span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>  <span class="kw">FROM</span> az_statewide_2020_04_01</span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>  <span class="kw">WHERE</span> search_conducted <span class="op">=</span> <span class="dv">1</span></span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>    <span class="kw">AND</span> <span class="dt">date</span> <span class="kw">BETWEEN</span> <span class="st">'2016-01-01'</span> <span class="kw">AND</span> <span class="st">'2019-12-31'</span></span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>  <span class="kw">UNION</span> <span class="kw">ALL</span></span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>  <span class="kw">SELECT</span></span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a>    <span class="st">'SF‑PD'</span> <span class="kw">AS</span> agency,</span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a>    <span class="cf">CASE</span></span>
+<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a>      <span class="cf">WHEN</span> search_basis <span class="op">=</span> <span class="st">'Consent'</span>           <span class="cf">THEN</span> <span class="st">'Consent'</span></span>
+<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a>      <span class="cf">WHEN</span> search_basis <span class="kw">LIKE</span> <span class="st">'%Probable%'</span>     <span class="cf">THEN</span> <span class="st">'Probable cause'</span></span>
+<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a>      <span class="cf">ELSE</span> <span class="st">'Other'</span></span>
+<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a>    <span class="cf">END</span>,</span>
+<span id="cb3-29"><a href="#cb3-29" aria-hidden="true" tabindex="-1"></a>    contraband_found</span>
+<span id="cb3-30"><a href="#cb3-30" aria-hidden="true" tabindex="-1"></a>  <span class="kw">FROM</span> ca_san_francisco_2020_04_01</span>
+<span id="cb3-31"><a href="#cb3-31" aria-hidden="true" tabindex="-1"></a>  <span class="kw">WHERE</span> search_conducted <span class="op">=</span> <span class="dv">1</span></span>
+<span id="cb3-32"><a href="#cb3-32" aria-hidden="true" tabindex="-1"></a>    <span class="kw">AND</span> <span class="dt">date</span> <span class="kw">BETWEEN</span> <span class="st">'2016-01-01'</span> <span class="kw">AND</span> <span class="st">'2019-12-31'</span></span>
+<span id="cb3-33"><a href="#cb3-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-34"><a href="#cb3-34" aria-hidden="true" tabindex="-1"></a>  <span class="kw">UNION</span> <span class="kw">ALL</span></span>
+<span id="cb3-35"><a href="#cb3-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-36"><a href="#cb3-36" aria-hidden="true" tabindex="-1"></a>  <span class="kw">SELECT</span></span>
+<span id="cb3-37"><a href="#cb3-37" aria-hidden="true" tabindex="-1"></a>    <span class="st">'OAK‑PD'</span> <span class="kw">AS</span> agency,</span>
+<span id="cb3-38"><a href="#cb3-38" aria-hidden="true" tabindex="-1"></a>    <span class="cf">CASE</span></span>
+<span id="cb3-39"><a href="#cb3-39" aria-hidden="true" tabindex="-1"></a>      <span class="cf">WHEN</span> search_basis <span class="op">=</span> <span class="st">'Consent'</span>           <span class="cf">THEN</span> <span class="st">'Consent'</span></span>
+<span id="cb3-40"><a href="#cb3-40" aria-hidden="true" tabindex="-1"></a>      <span class="cf">WHEN</span> search_basis <span class="kw">LIKE</span> <span class="st">'%Probable%'</span>     <span class="cf">THEN</span> <span class="st">'Probable cause'</span></span>
+<span id="cb3-41"><a href="#cb3-41" aria-hidden="true" tabindex="-1"></a>      <span class="cf">ELSE</span> <span class="st">'Other'</span></span>
+<span id="cb3-42"><a href="#cb3-42" aria-hidden="true" tabindex="-1"></a>    <span class="cf">END</span>,</span>
+<span id="cb3-43"><a href="#cb3-43" aria-hidden="true" tabindex="-1"></a>    contraband_found</span>
+<span id="cb3-44"><a href="#cb3-44" aria-hidden="true" tabindex="-1"></a>  <span class="kw">FROM</span> ca_oakland_2020_04_01</span>
+<span id="cb3-45"><a href="#cb3-45" aria-hidden="true" tabindex="-1"></a>  <span class="kw">WHERE</span> search_conducted <span class="op">=</span> <span class="dv">1</span></span>
+<span id="cb3-46"><a href="#cb3-46" aria-hidden="true" tabindex="-1"></a>    <span class="kw">AND</span> <span class="dt">date</span> <span class="kw">BETWEEN</span> <span class="st">'2016-01-01'</span> <span class="kw">AND</span> <span class="st">'2019-12-31'</span></span>
+<span id="cb3-47"><a href="#cb3-47" aria-hidden="true" tabindex="-1"></a>) <span class="kw">AS</span> all_searches</span>
+<span id="cb3-48"><a href="#cb3-48" aria-hidden="true" tabindex="-1"></a><span class="kw">GROUP</span> <span class="kw">BY</span> agency, reason_group</span>
+<span id="cb3-49"><a href="#cb3-49" aria-hidden="true" tabindex="-1"></a><span class="kw">HAVING</span> <span class="fu">COUNT</span>(<span class="op">*</span>) <span class="op">&gt;=</span> <span class="dv">50</span></span>
+<span id="cb3-50"><a href="#cb3-50" aria-hidden="true" tabindex="-1"></a><span class="kw">ORDER</span> <span class="kw">BY</span> agency, hit_rate_pct <span class="kw">DESC</span>;</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="knitsql-table">
+<table class="table table-sm table-striped small">
+<caption>7 records</caption>
+<thead>
+<tr class="header">
+<th style="text-align: left;">agency</th>
+<th style="text-align: left;">reason_group</th>
+<th style="text-align: right;">total_searches</th>
+<th style="text-align: right;">hits</th>
+<th style="text-align: right;">hit_rate_pct</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">AZ‑ST</td>
+<td style="text-align: left;">Consent</td>
+<td style="text-align: right;">9132</td>
+<td style="text-align: right;">8046</td>
+<td style="text-align: right;">88.1</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">AZ‑ST</td>
+<td style="text-align: left;">Probable cause</td>
+<td style="text-align: right;">95531</td>
+<td style="text-align: right;">80179</td>
+<td style="text-align: right;">83.9</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">OAK‑PD</td>
+<td style="text-align: left;">Probable cause</td>
+<td style="text-align: right;">6317</td>
+<td style="text-align: right;">2334</td>
+<td style="text-align: right;">36.9</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">OAK‑PD</td>
+<td style="text-align: left;">Other</td>
+<td style="text-align: right;">14163</td>
+<td style="text-align: right;">3763</td>
+<td style="text-align: right;">26.6</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">OAK‑PD</td>
+<td style="text-align: left;">Consent</td>
+<td style="text-align: right;">439</td>
+<td style="text-align: right;">55</td>
+<td style="text-align: right;">12.5</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">SF‑PD</td>
+<td style="text-align: left;">Other</td>
+<td style="text-align: right;">1634</td>
+<td style="text-align: right;">347</td>
+<td style="text-align: right;">21.2</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">SF‑PD</td>
+<td style="text-align: left;">Consent</td>
+<td style="text-align: right;">266</td>
+<td style="text-align: right;">36</td>
+<td style="text-align: right;">13.5</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>AZ‑ST: exceptionally high hit‐rates on both Consent (88.1%) and Probable cause (83.9%). OAK‑PD: moderate productivity on Probable cause (36.9%) and Other (26.6%), but very low yield on Consent (12.5%). SF‑PD: only Consent (13.5%) and Other (21.2%) pass the 50‐search cutoff; Probable‑cause searches were too rare to include. </p>
+</section>
+</section>
+<section id="graphs" class="level2">
+<h2 class="anchored" data-anchor-id="graphs">Graphs</h2>
+<section id="plot-1-overall-contraband-hit-rate-by-search-basis" class="level3">
+<h3 class="anchored" data-anchor-id="plot-1-overall-contraband-hit-rate-by-search-basis">Plot 1: Overall Contraband Hit Rate by Search Basis</h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>df_overall <span class="ot">&lt;-</span> <span class="fu">dbGetQuery</span>(con_traffic, <span class="st">"</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="st">SELECT</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="st">  reason_group,</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="st">  ROUND(100.0 * SUM(contraband_found) / COUNT(*), 1) AS hit_rate_pct</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="st">FROM (</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="st">  SELECT</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="st">    CASE</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a><span class="st">      WHEN search_basis = 'Consent'           THEN 'Consent'</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a><span class="st">      WHEN search_basis LIKE '%Probable%'     THEN 'Probable cause'</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a><span class="st">      ELSE 'Other'</span></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a><span class="st">    END AS reason_group,</span></span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a><span class="st">    contraband_found</span></span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a><span class="st">  FROM az_statewide_2020_04_01 WHERE search_conducted=1 AND date BETWEEN '2016-01-01' AND '2019-12-31'</span></span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a><span class="st">  UNION ALL</span></span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a><span class="st">  SELECT CASE</span></span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a><span class="st">      WHEN search_basis = 'Consent' THEN 'Consent'</span></span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a><span class="st">      WHEN search_basis LIKE '%Probable%' THEN 'Probable cause'</span></span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a><span class="st">      ELSE 'Other'</span></span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a><span class="st">    END,</span></span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a><span class="st">    contraband_found</span></span>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a><span class="st">  FROM ca_san_francisco_2020_04_01 WHERE search_conducted=1 AND date BETWEEN '2016-01-01' AND '2019-12-31'</span></span>
+<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a><span class="st">  UNION ALL</span></span>
+<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a><span class="st">  SELECT CASE</span></span>
+<span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a><span class="st">      WHEN search_basis = 'Consent' THEN 'Consent'</span></span>
+<span id="cb4-25"><a href="#cb4-25" aria-hidden="true" tabindex="-1"></a><span class="st">      WHEN search_basis LIKE '%Probable%' THEN 'Probable cause'</span></span>
+<span id="cb4-26"><a href="#cb4-26" aria-hidden="true" tabindex="-1"></a><span class="st">      ELSE 'Other'</span></span>
+<span id="cb4-27"><a href="#cb4-27" aria-hidden="true" tabindex="-1"></a><span class="st">    END,</span></span>
+<span id="cb4-28"><a href="#cb4-28" aria-hidden="true" tabindex="-1"></a><span class="st">    contraband_found</span></span>
+<span id="cb4-29"><a href="#cb4-29" aria-hidden="true" tabindex="-1"></a><span class="st">  FROM ca_oakland_2020_04_01 WHERE search_conducted=1 AND date BETWEEN '2016-01-01' AND '2019-12-31'</span></span>
+<span id="cb4-30"><a href="#cb4-30" aria-hidden="true" tabindex="-1"></a><span class="st">) AS t</span></span>
+<span id="cb4-31"><a href="#cb4-31" aria-hidden="true" tabindex="-1"></a><span class="st">GROUP BY reason_group</span></span>
+<span id="cb4-32"><a href="#cb4-32" aria-hidden="true" tabindex="-1"></a><span class="st">ORDER BY hit_rate_pct DESC;</span></span>
+<span id="cb4-33"><a href="#cb4-33" aria-hidden="true" tabindex="-1"></a><span class="st">"</span>)</span>
+<span id="cb4-34"><a href="#cb4-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-35"><a href="#cb4-35" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb4-36"><a href="#cb4-36" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(df_overall, <span class="fu">aes</span>(</span>
+<span id="cb4-37"><a href="#cb4-37" aria-hidden="true" tabindex="-1"></a>  <span class="at">x =</span> <span class="fu">reorder</span>(reason_group, <span class="sc">-</span>hit_rate_pct),</span>
+<span id="cb4-38"><a href="#cb4-38" aria-hidden="true" tabindex="-1"></a>  <span class="at">y =</span> hit_rate_pct,</span>
+<span id="cb4-39"><a href="#cb4-39" aria-hidden="true" tabindex="-1"></a>  <span class="at">fill =</span> reason_group</span>
+<span id="cb4-40"><a href="#cb4-40" aria-hidden="true" tabindex="-1"></a>)) <span class="sc">+</span></span>
+<span id="cb4-41"><a href="#cb4-41" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_col</span>() <span class="sc">+</span></span>
+<span id="cb4-42"><a href="#cb4-42" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_brewer</span>(<span class="at">palette =</span> <span class="st">"Set3"</span>) <span class="sc">+</span></span>
+<span id="cb4-43"><a href="#cb4-43" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb4-44"><a href="#cb4-44" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Overall Contraband Hit Rate by Search Basis"</span>,</span>
+<span id="cb4-45"><a href="#cb4-45" aria-hidden="true" tabindex="-1"></a>    <span class="at">x     =</span> <span class="st">"Search Basis"</span>,</span>
+<span id="cb4-46"><a href="#cb4-46" aria-hidden="true" tabindex="-1"></a>    <span class="at">y     =</span> <span class="st">"Hit Rate (%)"</span>,</span>
+<span id="cb4-47"><a href="#cb4-47" aria-hidden="true" tabindex="-1"></a>    <span class="at">fill  =</span> <span class="st">"Search Basis"</span></span>
+<span id="cb4-48"><a href="#cb4-48" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb4-49"><a href="#cb4-49" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb4-50"><a href="#cb4-50" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">axis.text.x =</span> <span class="fu">element_text</span>(<span class="at">angle =</span> <span class="dv">25</span>, <span class="at">hjust =</span> <span class="dv">1</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="search_outcomes_by_reason_files/figure-html/unnamed-chunk-4-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+</section>
+<section id="plot-2-contraband-hit-rate-by-search-basis-by-agency" class="level3">
+<h3 class="anchored" data-anchor-id="plot-2-contraband-hit-rate-by-search-basis-by-agency">Plot 2: Contraband Hit Rate by Search Basis, by Agency</h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>df_agency <span class="ot">&lt;-</span> <span class="fu">dbGetQuery</span>(con_traffic, <span class="st">"</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="st">SELECT</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="st">  agency,</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="st">  reason_group,</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="st">  ROUND(100.0 * SUM(contraband_found) / COUNT(*), 1) AS hit_rate_pct</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="st">FROM (</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="st">  SELECT</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a><span class="st">    'AZ‑ST' AS agency,</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a><span class="st">    CASE</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a><span class="st">      WHEN search_basis = 'Consent'       THEN 'Consent'</span></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a><span class="st">      WHEN search_basis LIKE '%Probable%' THEN 'Probable cause'</span></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a><span class="st">      ELSE 'Other'</span></span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a><span class="st">    END AS reason_group,</span></span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a><span class="st">    contraband_found</span></span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a><span class="st">  FROM az_statewide_2020_04_01 WHERE search_conducted=1 AND date BETWEEN '2016-01-01' AND '2019-12-31'</span></span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a><span class="st">  UNION ALL</span></span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a><span class="st">  SELECT</span></span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a><span class="st">    'SF‑PD',</span></span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a><span class="st">    CASE</span></span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a><span class="st">      WHEN search_basis = 'Consent'       THEN 'Consent'</span></span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a><span class="st">      WHEN search_basis LIKE '%Probable%' THEN 'Probable cause'</span></span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a><span class="st">      ELSE 'Other'</span></span>
+<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a><span class="st">    END,</span></span>
+<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a><span class="st">    contraband_found</span></span>
+<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a><span class="st">  FROM ca_san_francisco_2020_04_01 WHERE search_conducted=1 AND date BETWEEN '2016-01-01' AND '2019-12-31'</span></span>
+<span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a><span class="st">  UNION ALL</span></span>
+<span id="cb5-27"><a href="#cb5-27" aria-hidden="true" tabindex="-1"></a><span class="st">  SELECT</span></span>
+<span id="cb5-28"><a href="#cb5-28" aria-hidden="true" tabindex="-1"></a><span class="st">    'OAK‑PD',</span></span>
+<span id="cb5-29"><a href="#cb5-29" aria-hidden="true" tabindex="-1"></a><span class="st">    CASE</span></span>
+<span id="cb5-30"><a href="#cb5-30" aria-hidden="true" tabindex="-1"></a><span class="st">      WHEN search_basis = 'Consent'       THEN 'Consent'</span></span>
+<span id="cb5-31"><a href="#cb5-31" aria-hidden="true" tabindex="-1"></a><span class="st">      WHEN search_basis LIKE '%Probable%' THEN 'Probable cause'</span></span>
+<span id="cb5-32"><a href="#cb5-32" aria-hidden="true" tabindex="-1"></a><span class="st">      ELSE 'Other'</span></span>
+<span id="cb5-33"><a href="#cb5-33" aria-hidden="true" tabindex="-1"></a><span class="st">    END,</span></span>
+<span id="cb5-34"><a href="#cb5-34" aria-hidden="true" tabindex="-1"></a><span class="st">    contraband_found</span></span>
+<span id="cb5-35"><a href="#cb5-35" aria-hidden="true" tabindex="-1"></a><span class="st">  FROM ca_oakland_2020_04_01 WHERE search_conducted=1 AND date BETWEEN '2016-01-01' AND '2019-12-31'</span></span>
+<span id="cb5-36"><a href="#cb5-36" aria-hidden="true" tabindex="-1"></a><span class="st">) AS t</span></span>
+<span id="cb5-37"><a href="#cb5-37" aria-hidden="true" tabindex="-1"></a><span class="st">GROUP BY agency, reason_group</span></span>
+<span id="cb5-38"><a href="#cb5-38" aria-hidden="true" tabindex="-1"></a><span class="st">HAVING COUNT(*) &gt;= 50</span></span>
+<span id="cb5-39"><a href="#cb5-39" aria-hidden="true" tabindex="-1"></a><span class="st">ORDER BY agency, hit_rate_pct DESC;</span></span>
+<span id="cb5-40"><a href="#cb5-40" aria-hidden="true" tabindex="-1"></a><span class="st">"</span>)</span>
+<span id="cb5-41"><a href="#cb5-41" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-42"><a href="#cb5-42" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(df_agency, <span class="fu">aes</span>(</span>
+<span id="cb5-43"><a href="#cb5-43" aria-hidden="true" tabindex="-1"></a>  <span class="at">x    =</span> <span class="fu">reorder</span>(reason_group, <span class="sc">-</span>hit_rate_pct),</span>
+<span id="cb5-44"><a href="#cb5-44" aria-hidden="true" tabindex="-1"></a>  <span class="at">y    =</span> hit_rate_pct,</span>
+<span id="cb5-45"><a href="#cb5-45" aria-hidden="true" tabindex="-1"></a>  <span class="at">fill =</span> reason_group</span>
+<span id="cb5-46"><a href="#cb5-46" aria-hidden="true" tabindex="-1"></a>)) <span class="sc">+</span></span>
+<span id="cb5-47"><a href="#cb5-47" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_col</span>(<span class="at">show.legend =</span> <span class="cn">FALSE</span>) <span class="sc">+</span></span>
+<span id="cb5-48"><a href="#cb5-48" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_brewer</span>(<span class="at">palette =</span> <span class="st">"Set2"</span>) <span class="sc">+</span></span>
+<span id="cb5-49"><a href="#cb5-49" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span> agency) <span class="sc">+</span></span>
+<span id="cb5-50"><a href="#cb5-50" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb5-51"><a href="#cb5-51" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Contraband Hit Rate by Search Basis, by Agency"</span>,</span>
+<span id="cb5-52"><a href="#cb5-52" aria-hidden="true" tabindex="-1"></a>    <span class="at">x     =</span> <span class="st">"Search Basis"</span>,</span>
+<span id="cb5-53"><a href="#cb5-53" aria-hidden="true" tabindex="-1"></a>    <span class="at">y     =</span> <span class="st">"Hit Rate (%)"</span></span>
+<span id="cb5-54"><a href="#cb5-54" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb5-55"><a href="#cb5-55" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb5-56"><a href="#cb5-56" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">axis.text.x =</span> <span class="fu">element_text</span>(<span class="at">angle =</span> <span class="dv">25</span>, <span class="at">hjust =</span> <span class="dv">1</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="search_outcomes_by_reason_files/figure-html/unnamed-chunk-5-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+</section>
+</section>
+<section id="discussion" class="level2">
+<h2 class="anchored" data-anchor-id="discussion">Discussion</h2>
+<p>The results reveal two clear patterns. First, across all three jurisdictions, searches based on Consent and Probable cause are markedly more productive than those based on Other reasons: both Consent and Probable‑cause searches uncover contraband in over 80% of cases overall, whereas Other searches yield contraband only about a quarter of the time. This suggests that when officers have clear legal grounds,either explicit consent or demonstrable probable cause, their search decisions are highly effective at finding illicit items.</p>
+<p>Second, there is substantial variation between agencies. The Arizona State Police (AZ‑ST) consistently achieves the highest hit rates, nearly 88% for Consent searches and 84% for Probable‑cause searches, indicating very efficient use of search authority. By contrast, Oakland PD (OAK‑PD) sees much lower returns: only about 37% of Probable‑cause searches and 13% of Consent searches uncover contraband, and San Francisco PD (SF‑PD) shows similarly modest yields on the bases it uses most frequently. These discrepancies likely reflect differences in training, departmental policy, or how rigorously officers document and execute search bases.</p>
+<p>Taken together, these findings imply that refining training around identifying and exercising valid search grounds could both improve contraband detection and minimize unnecessary intrusions. Agencies with low Consent‑search yields might prioritize clearer guidelines on when consent is sufficiently informed and voluntary, while all departments could benefit from sharing best practices in articulating probable‑cause justifications. Future work should expand this analysis to additional states, disaggregate the broad “Other” category into its component reasons, and control for driver demographics and stop context to better understand the drivers of these effectiveness gaps.</p>
+</section>
+<section id="conclusion" class="level2">
+<h2 class="anchored" data-anchor-id="conclusion">Conclusion</h2>
+<p>Using SQL exclusively for data wrangling across three SOPP tables and employing 7 distinct SQL keywords (UNION ALL, CASE, WHERE, GROUP BY, HAVING, ORDER BY, SUM), I produced two visualizations demonstrating that Consent and Probable‑cause stops are far more likely to uncover contraband than Other stops. Significant variations across AZ‑ST, OAK‑PD, and SF‑PD highlight the need for tailored policy and training to improve search efficiency and reduce unnecessary intrusions.</p>
+</section>
+<section id="references" class="level2">
+<h2 class="anchored" data-anchor-id="references">References</h2>
+<p>Pierson, E., Simoiu, C., Overgoor, J., Corbett‑Davies, S., Joo, J., Goel, S., &amp; Huq, A. (2020). A large‑scale analysis of racial disparities in police stops across the United States. Stanford Open Policing Project. Retrieved from https://openpolicing.stanford.edu/</p>
 
 
 </section>
