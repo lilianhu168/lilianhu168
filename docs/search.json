@@ -250,5 +250,110 @@
     "title": "Search Outcomes by Stop Reason",
     "section": "References",
     "text": "References\nPierson, E., Simoiu, C., Overgoor, J., Corbett‑Davies, S., Joo, J., Goel, S., & Huq, A. (2020). A large‑scale analysis of racial disparities in police stops across the United States. Stanford Open Policing Project. Retrieved from https://openpolicing.stanford.edu/"
+  },
+  {
+    "objectID": "Project_6.html#title-slide",
+    "href": "Project_6.html#title-slide",
+    "title": "Twitter Finance Text Analysis + WSJ Sentiment Extension",
+    "section": "Title Slide",
+    "text": "Title Slide\nTwitter Finance Text Analysis\nLilian Hu | May 2025"
+  },
+  {
+    "objectID": "Project_6.html#client-problem-key-question",
+    "href": "Project_6.html#client-problem-key-question",
+    "title": "Twitter Finance Text Analysis + WSJ Sentiment Extension",
+    "section": "1. Client Problem & Key Question",
+    "text": "1. Client Problem & Key Question\n\nContext: Real-time Twitter chatter shapes market sentiment.\nKey question: Which companies dominate finance conversations on Twitter?"
+  },
+  {
+    "objectID": "Project_6.html#project-2-overview",
+    "href": "Project_6.html#project-2-overview",
+    "title": "Twitter Finance Text Analysis + Sentiment Extension",
+    "section": "Project 2 Overview",
+    "text": "Project 2 Overview\n\nContext: X (formerly Twitter) as a real-time platform for financial discussions\nDatasets:\n\nFinancial Tweets from Kaggle (tweets, timestamps, metadata)\n\nCompany lookup table (stocks_cleaned.csv) mapping tickers to company names\nKey question: Which stocks dominate financial discussions on X, and how are they co-mentioned?"
+  },
+  {
+    "objectID": "Project_6.html#data-wrangling-cleaning",
+    "href": "Project_6.html#data-wrangling-cleaning",
+    "title": "Twitter Finance Text Analysis + Sentiment Extension",
+    "section": "Data Wrangling & Cleaning",
+    "text": "Data Wrangling & Cleaning\n\nLowercase all tax (str_to_lower())\nRemove URLs (str_replace_all(\"https?://\\\\S+\", \"\")\nStrip punctuation (str_replace_all(\"[[:punct:]]\", \" \"))\nregex \"\\\\$[A-Za-z]{1,6}\" → remove $, uppercase tickers\nMapping: join with stocks_cleaned for company_name\n\n\nlibrary(tidyverse)\nstocks_cleaned &lt;- read.csv(\"stocks_cleaned.csv\")\ntweets &lt;- read_csv(\"stockerbot_export.csv\") |&gt;\n  select(text, timestamp, source) |&gt;\n  rename(timestamp_original = timestamp) |&gt;\n  mutate(\n    text_clean = text |&gt;\n      str_to_lower() |&gt;\n      str_replace_all(\"https?://\\\\S+\", \"\") |&gt;\n      str_replace_all(\"[[:punct:]]\", \" \")\n  ) |&gt;\n  filter(!is.na(text_clean))\n\nstocks_cleaned &lt;- stocks_cleaned |&gt; \n  rename(ticker = ticker, company_name = name) |&gt;\n  mutate(ticker = str_to_upper(ticker))\n\ntweets &lt;- tweets |&gt;\n  mutate(tickers_found = str_extract_all(text_clean, \"\\\\$[A-Za-z]{1,6}\")) |&gt;\n  unnest(tickers_found) |&gt;\n  mutate(tickers_found = str_remove(tickers_found, \"\\\\$\") |&gt; str_to_upper()) |&gt;\n  left_join(stocks_cleaned, by = c(\"tickers_found\" = \"ticker\")) |&gt;\n  filter(!is.na(company_name))\n\nticker_counts &lt;- tweets |&gt;\n  count(company_name, sort = TRUE)"
+  },
+  {
+    "objectID": "Project_6.html#top-mentions-bar-chart",
+    "href": "Project_6.html#top-mentions-bar-chart",
+    "title": "Twitter Finance Text Analysis + WSJ Sentiment Extension",
+    "section": "Top Mentions Bar Chart",
+    "text": "Top Mentions Bar Chart"
+  },
+  {
+    "objectID": "Project_6.html#top-mentions",
+    "href": "Project_6.html#top-mentions",
+    "title": "Twitter Finance Text Analysis + Sentiment Extension",
+    "section": "Top Mentions",
+    "text": "Top Mentions"
+  },
+  {
+    "objectID": "Project_6.html#co-occurances",
+    "href": "Project_6.html#co-occurances",
+    "title": "Twitter Finance Text Analysis + WSJ Sentiment Extension",
+    "section": "Co-Occurances",
+    "text": "Co-Occurances"
+  },
+  {
+    "objectID": "Project_6.html#results-key-findings",
+    "href": "Project_6.html#results-key-findings",
+    "title": "Twitter Finance Text Analysis + Sentiment Extension",
+    "section": "Results & Key Findings",
+    "text": "Results & Key Findings\n\nDominant mentions: Netflix, Amazon, Alphabet (Google), Facebook, Microsoft, Apple\nInterpretation: High mention volumes reflect investor focus on earnings, news, and events.\nCo-occurrence: Pairs like Apple–Microsoft and Amazon–Alphabet indicate sector groupings."
+  },
+  {
+    "objectID": "Project_6.html#extra-wsj-analysis",
+    "href": "Project_6.html#extra-wsj-analysis",
+    "title": "Twitter Finance Text Analysis + WSJ Sentiment Extension",
+    "section": "Extra: WSJ Analysis",
+    "text": "Extra: WSJ Analysis\nGoal: Complement Twitter analysis with news sentiment from Wall Street Journal. - Approach:\n1. Scrape WSJ Market headlines that mention any of our top tickers via rvest.\n2. Filter headlines using regex 3. Tokenize & run sentiment analysis with tidytext::get_sentiments(\"bing\").\n\nlibrary(rvest)\nlibrary(httr)\nlibrary(dplyr)\nlibrary(stringr)\n\n# helper --------------------------------------------------------------\nfetch_top_news &lt;- function(ticker, exchange = \"NASDAQ\") {\n  url &lt;- sprintf(\"https://www.google.com/finance/quote/%s:%s\", ticker, exchange)\n\n  # 1. download raw html\n  res &lt;- httr::GET(\n    url,\n    httr::add_headers(\n      `User-Agent` = \"Mozilla/5.0 (Windows NT 10.0; Win64; x64)\"\n    )\n  )\n  page &lt;- read_html(content(res, as = \"text\", encoding = \"UTF-8\"))\n\n  # 2. find the Top-news container and then all anchor tags inside it\n  #    XPath logic: locate the div that *contains* the text 'Top news'\n  nodes &lt;- page %&gt;%\n    html_elements(\n      xpath = \"//div[contains(., 'Top news')]//a[starts-with(@href, 'http')]\"\n    )\n\n  tibble(\n    ticker   = ticker,\n    headline = nodes %&gt;% html_text(trim = TRUE),\n    link     = nodes %&gt;% html_attr(\"href\")\n  )\n}\n\n# test with META ------------------------------------------------------\nmeta_news &lt;- fetch_top_news(\"META\")\nprint(head(meta_news, 5))\n\n# A tibble: 5 × 3\n  ticker headline                                                          link \n  &lt;chr&gt;  &lt;chr&gt;                                                             &lt;chr&gt;\n1 META   Wall Street climbs in choppy trading after Fed warns of rising r… http…\n2 META   Disclaimer                                                        http…\n3 META   Yahoo FinancePrediction: 1 Stock That Will Be Worth More Than Al… http…\n4 META   Business InsiderThe COO of Reality Labs is leaving Meta after ne… http…\n5 META   MorningstarAfter Earnings, Is META Stock a Buy, a Sell, or Fairl… http…\n\n\n\nclean_headline &lt;- function(x) {\n  # drop the source & age – assume headline is the part after the last \"  \"\n  str_trim(str_replace(x, \".*\\\\s{2,}\", \"\"))\n}\n\nmeta_news &lt;- meta_news %&gt;%\n  mutate(headline = clean_headline(headline))\n\n\ntickers &lt;- c(\"META\", \"GOOGL\", \"MSFT\", \"NVDA\", \"AMZN\")\n\nall_news &lt;- purrr::map_dfr(tickers, fetch_top_news) %&gt;%\n  mutate(headline = clean_headline(headline))\n\n\nlibrary(tidytext)\n\nsent_lex &lt;- get_sentiments(\"afinn\")\n\nsentiment_df &lt;- all_news %&gt;%                               # ticker | headline | link\n  unnest_tokens(word, headline, drop = FALSE) %&gt;%          # headline *kept*\n  inner_join(sent_lex, by = \"word\") %&gt;%\n  group_by(ticker, headline) %&gt;%                           # now headline exists\n  summarise(raw_score = sum(value), .groups = \"drop\") %&gt;%\n  mutate(sentiment = case_when(\n    raw_score &gt; 0 ~ \"positive\",\n    raw_score &lt; 0 ~ \"negative\",\n    TRUE          ~ \"neutral\"\n  ))\nprint(head(sentiment_df))\n\n# A tibble: 6 × 4\n  ticker headline                                            raw_score sentiment\n  &lt;chr&gt;  &lt;chr&gt;                                                   &lt;dbl&gt; &lt;chr&gt;    \n1 META   NBC NewsMeta wins $168 million verdict against spy…         3 positive \n2 META   Seeking AlphaMeta: Bull Case Remains Intact After …         2 positive \n3 META   The HillEurope’s tech battle could cost it the tra…        -1 negative \n4 META   The Motley FoolThe Best Company in Big Tech?2 days…         4 positive \n5 META   Wall Street climbs in choppy trading after Fed war…        -4 negative \n6 META   Yahoo FinancePrediction: 1 Stock That Will Be Wort…         2 positive"
+  },
+  {
+    "objectID": "Project_6.html#extra-sentiment-analysis",
+    "href": "Project_6.html#extra-sentiment-analysis",
+    "title": "Twitter Finance Text Analysis + Sentiment Extension",
+    "section": "Extra: Sentiment Analysis",
+    "text": "Extra: Sentiment Analysis\nGoal: Gauge positive vs. negative tone in financial tweets.\n\nApproach:\n\n\n\nTokenize cleaned tweet text.\n\nJoin tokens with Bing sentiment lexicon.\n\nCompute net sentiment per ticker (positive − negative counts)."
+  },
+  {
+    "objectID": "Project_6.html#sentiment-analysis",
+    "href": "Project_6.html#sentiment-analysis",
+    "title": "Twitter Finance Text Analysis + Sentiment Extension",
+    "section": "Sentiment Analysis",
+    "text": "Sentiment Analysis\n\nTidytext\nUsing Loughran-McDonald lexicon\ninner join\n\n\nlibrary(tidyverse)\nlibrary(tidytext)\nlibrary(textdata)\n\nif (!\"tweet_id\" %in% names(tweets)) {\n  tweets &lt;- tweets |&gt; mutate(tweet_id = row_number())\n}\n\ntweet_words &lt;- tweets |&gt; \n  select(tweet_id, company_name, text_clean) |&gt; \n  unnest_tokens(word, text_clean)\n\nlm_lex &lt;- lexicon_loughran() |&gt; \n  filter(sentiment %in% c(\"positive\", \"negative\"))\n\ntweet_sent_fin &lt;- tweet_words |&gt; \n  inner_join(lm_lex, by = \"word\") |&gt; \n  mutate(score = if_else(sentiment == \"positive\", 1, -1))\n\n# ── 3  Score tweets & companies ─────────────────────────────────\ntweet_scores_fin &lt;- tweet_sent_fin |&gt; \n  group_by(tweet_id, company_name) |&gt; \n  summarise(tweet_score = sum(score), .groups = \"drop\")\n\ncompany_fin &lt;- tweet_scores_fin |&gt; \n  group_by(company_name) |&gt; \n  summarise(net_sent = sum(tweet_score),\n            n_tweets = n(), .groups = \"drop\") |&gt; \n  filter(n_tweets &gt;= 50)"
+  },
+  {
+    "objectID": "Project_6.html#co-occurrences",
+    "href": "Project_6.html#co-occurrences",
+    "title": "Twitter Finance Text Analysis + Sentiment Extension",
+    "section": "Co-Occurrences",
+    "text": "Co-Occurrences"
+  },
+  {
+    "objectID": "Project_6.html#section",
+    "href": "Project_6.html#section",
+    "title": "Twitter Finance Text Analysis + Sentiment Extension",
+    "section": "",
+    "text": "tweet_sentiment |&gt;\n  count(sentiment) |&gt;\n  mutate(prop = n / sum(n))\n\n# A tibble: 2 × 3\n  sentiment      n  prop\n  &lt;chr&gt;      &lt;int&gt; &lt;dbl&gt;\n1 negative  337787 0.553\n2 positive  273514 0.447\n\n\n\n## 1. Top words driving negativity\ntweet_sentiment |&gt;                # from earlier chunk\n  filter(sentiment == \"negative\") |&gt;\n  count(word, sort = TRUE) |&gt;\n  slice_head(n = 20)\n\n# A tibble: 20 × 2\n   word            n\n   &lt;chr&gt;       &lt;int&gt;\n 1 false      151054\n 2 hum         34126\n 3 bearish     15855\n 4 limited     14231\n 5 waste       11355\n 6 pain        10260\n 7 overweight   7069\n 8 volatility   5574\n 9 critical     4425\n10 negative     3760\n11 risks        3746\n12 cons         3231\n13 weakness     2503\n14 bad          2405\n15 downgrade    2405\n16 burn         2364\n17 dislike      2340\n18 jobless      2336\n19 break        1914\n20 cry          1890\n\n## 2. Compare per-tweet average instead of totals\ncompany_avg &lt;- tweet_scores |&gt;     # tweet_scores built earlier\n  group_by(company_name) |&gt;\n  summarise(avg_sent = mean(tweet_score),\n            n_tweets = n(), .groups = \"drop\") |&gt;\n  filter(n_tweets &gt;= 50)\n\n## 3. Try a finance-specific lexicon\nlibrary(textdata)                   # install if needed\nlm_dic &lt;- lexicon_loughran()        # Loughran-McDonald\ntweet_fin &lt;- tweet_words |&gt;\n  inner_join(lm_dic, by = c(\"word\" = \"word\")) |&gt;  # keeps words tagged pos/neg\n  mutate(score = if_else(sentiment == \"positive\", 1, -1))"
+  },
+  {
+    "objectID": "Project_6.html#why-all-negative",
+    "href": "Project_6.html#why-all-negative",
+    "title": "Twitter Finance Text Analysis + Sentiment Extension",
+    "section": "Why all negative?",
+    "text": "Why all negative?\nSentiment: 55% negative, 45% positive Top negative words: false, hum, overweight volatility\n\ntweet_sentiment |&gt;\n  count(sentiment) |&gt;\n  mutate(prop = n / sum(n))\n\n# A tibble: 2 × 3\n  sentiment      n  prop\n  &lt;chr&gt;      &lt;int&gt; &lt;dbl&gt;\n1 negative  337787 0.553\n2 positive  273514 0.447\n\n## Top words driving negativity\ntweet_sentiment |&gt;                # from earlier chunk\n  filter(sentiment == \"negative\") |&gt;\n  count(word, sort = TRUE) |&gt;\n  slice_head(n = 20)\n\n# A tibble: 20 × 2\n   word            n\n   &lt;chr&gt;       &lt;int&gt;\n 1 false      151054\n 2 hum         34126\n 3 bearish     15855\n 4 limited     14231\n 5 waste       11355\n 6 pain        10260\n 7 overweight   7069\n 8 volatility   5574\n 9 critical     4425\n10 negative     3760\n11 risks        3746\n12 cons         3231\n13 weakness     2503\n14 bad          2405\n15 downgrade    2405\n16 burn         2364\n17 dislike      2340\n18 jobless      2336\n19 break        1914\n20 cry          1890"
+  },
+  {
+    "objectID": "Project_6.html#use-finance-specific-lexicon",
+    "href": "Project_6.html#use-finance-specific-lexicon",
+    "title": "Twitter Finance Text Analysis + Sentiment Extension",
+    "section": "Use Finance Specific Lexicon",
+    "text": "Use Finance Specific Lexicon\n\n# ── 0  Prereqs ───────────────────────────────────────────────────\nlibrary(tidyverse)\nlibrary(tidytext)\nlibrary(textdata)\n\n# tweets already cleaned earlier; make sure it has tweet_id & text_clean\nif (!\"tweet_id\" %in% names(tweets)) {\n  tweets &lt;- tweets %&gt;% mutate(tweet_id = row_number())\n}\n\n# ── 1  Tokenise tweets ───────────────────────────────────────────\ntweet_words &lt;- tweets %&gt;% \n  select(tweet_id, company_name, text_clean) %&gt;% \n  unnest_tokens(word, text_clean)\n\n# ── 2  Loughran-McDonald finance lexicon ────────────────────────\nlm_lex &lt;- lexicon_loughran() %&gt;% \n  filter(sentiment %in% c(\"positive\", \"negative\"))\n\ntweet_sent_fin &lt;- tweet_words %&gt;% \n  inner_join(lm_lex, by = \"word\") %&gt;% \n  mutate(score = if_else(sentiment == \"positive\", 1, -1))\n\n# ── 3  Score tweets & companies ─────────────────────────────────\ntweet_scores_fin &lt;- tweet_sent_fin %&gt;% \n  group_by(tweet_id, company_name) %&gt;% \n  summarise(tweet_score = sum(score), .groups = \"drop\")\n\ncompany_fin &lt;- tweet_scores_fin %&gt;% \n  group_by(company_name) %&gt;% \n  summarise(net_sent = sum(tweet_score),\n            n_tweets = n(), .groups = \"drop\") %&gt;% \n  filter(n_tweets &gt;= 50)                         # tweak cutoff if you like\n\n# ── 4  Top-20 bar chart ─────────────────────────────────────────\ntop20_fin &lt;- company_fin %&gt;% \n  slice_max(order_by = abs(net_sent), n = 20)\n\nggplot(top20_fin,\n       aes(x = reorder(company_name, .data$net_sent),\n           y = net_sent,\n           fill = net_sent &gt; 0)) +\n  geom_col(show.legend = FALSE) +\n  coord_flip() +\n  labs(title = \"Net sentiment in tweets (Loughran-McDonald lexicon)\",\n       x = \"Company\",\n       y = \"Positive – Negative word count\") +\n  scale_fill_manual(values = c(\"TRUE\" = \"steelblue\",\n                               \"FALSE\" = \"firebrick\")) +\n  theme_minimal()"
   }
 ]
