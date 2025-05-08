@@ -119,7 +119,7 @@ ggplot(top_stock_pairs, aes(x = ticker1, y = ticker2, size = n)) +
 
 ## Sentiment Analysis
 
-- Tidytext
+- Using tidytext and textdata
 - Using Loughran-McDonald lexicon
 - inner join 
 
