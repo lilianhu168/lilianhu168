@@ -144,7 +144,6 @@ tweet_sent_fin <- tweet_words |>
   inner_join(lm_lex, by = "word") |> 
   mutate(score = if_else(sentiment == "positive", 1, -1))
 
-# ── 3  Score tweets & companies ─────────────────────────────────
 tweet_scores_fin <- tweet_sent_fin |> 
   group_by(tweet_id, company_name) |> 
   summarise(tweet_score = sum(score), .groups = "drop")
