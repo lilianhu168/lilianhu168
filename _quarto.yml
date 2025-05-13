@@ -32,6 +32,10 @@ website:
         menu: 
           - text: "Vehicle Search Outcomes by Reason"
             href: search_outcomes_by_reason.qmd
+      - text: "FINAL"
+        menu:
+          - text: "Final Presentation"
+            href: Project_6.qmd
 format:
   html:
     theme: lux
