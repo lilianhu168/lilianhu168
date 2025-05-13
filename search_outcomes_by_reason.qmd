@@ -38,50 +38,50 @@ con_traffic <- dbConnect(
 ```{sql, connection=con_traffic}
 SELECT
   reason_group,
-  COUNT(*)                                            AS total_searches,
-  SUM(contraband_found)                               AS hits,
-  ROUND(100.0 * SUM(contraband_found) / COUNT(*), 1)  AS hit_rate_pct
+  COUNT(*)                                           AS total_searches,
+  SUM(contraband_found)                              AS hits,
+  ROUND(100.0 * SUM(contraband_found) / COUNT(*), 1) AS hit_rate_pct
 FROM (
   SELECT
     CASE
-      WHEN search_basis = 'Consent'           THEN 'Consent'
-      WHEN search_basis LIKE '%Probable%'     THEN 'Probable cause'
-      ELSE 'Other'
-    END                                       AS reason_group,
+      WHEN search_basis = 'Consent'       THEN 'Consent'
+      WHEN search_basis LIKE '%Probable%' THEN 'Probable cause'
+    END                                     AS reason_group,
     contraband_found
   FROM az_statewide_2020_04_01
   WHERE search_conducted = 1
     AND date BETWEEN '2016-01-01' AND '2019-12-31'
+    AND (search_basis = 'Consent' OR search_basis LIKE '%Probable%')
 
   UNION ALL
 
   SELECT
     CASE
-      WHEN search_basis = 'Consent'           THEN 'Consent'
-      WHEN search_basis LIKE '%Probable%'     THEN 'Probable cause'
-      ELSE 'Other'
+      WHEN search_basis = 'Consent'       THEN 'Consent'
+      WHEN search_basis LIKE '%Probable%' THEN 'Probable cause'
     END,
     contraband_found
   FROM ca_san_francisco_2020_04_01
   WHERE search_conducted = 1
     AND date BETWEEN '2016-01-01' AND '2019-12-31'
+    AND (search_basis = 'Consent' OR search_basis LIKE '%Probable%')
 
   UNION ALL
 
   SELECT
     CASE
-      WHEN search_basis = 'Consent'           THEN 'Consent'
-      WHEN search_basis LIKE '%Probable%'     THEN 'Probable cause'
-      ELSE 'Other'
+      WHEN search_basis = 'Consent'       THEN 'Consent'
+      WHEN search_basis LIKE '%Probable%' THEN 'Probable cause'
     END,
     contraband_found
   FROM ca_oakland_2020_04_01
   WHERE search_conducted = 1
     AND date BETWEEN '2016-01-01' AND '2019-12-31'
+    AND (search_basis = 'Consent' OR search_basis LIKE '%Probable%')
 ) AS all_searches
 GROUP BY reason_group
-HAVING COUNT(*) >= 100
 ORDER BY hit_rate_pct DESC;
+
 
 ```
 
@@ -93,57 +93,56 @@ Consent searches (N=9,837) yield contraband 82.7% of the time---slightly higher 
 SELECT
   agency,
   reason_group,
-  COUNT(*)                                            AS total_searches,
-  SUM(contraband_found)                               AS hits,
-  ROUND(100.0 * SUM(contraband_found) / COUNT(*), 1)  AS hit_rate_pct
+  COUNT(*)                                           AS total_searches,
+  SUM(contraband_found)                              AS hits,
+  ROUND(100.0 * SUM(contraband_found) / COUNT(*), 1) AS hit_rate_pct
 FROM (
   SELECT
-    'AZ‑ST' AS agency,
+    'AZ-ST' AS agency,
     CASE
-      WHEN search_basis = 'Consent'           THEN 'Consent'
-      WHEN search_basis LIKE '%Probable%'     THEN 'Probable cause'
-      ELSE 'Other'
-    END                                       AS reason_group,
+      WHEN search_basis = 'Consent'       THEN 'Consent'
+      WHEN search_basis LIKE '%Probable%' THEN 'Probable cause'
+    END                                     AS reason_group,
     contraband_found
   FROM az_statewide_2020_04_01
   WHERE search_conducted = 1
     AND date BETWEEN '2016-01-01' AND '2019-12-31'
+    AND (search_basis = 'Consent' OR search_basis LIKE '%Probable%')
 
   UNION ALL
 
   SELECT
-    'SF‑PD' AS agency,
+    'SF-PD' AS agency,
     CASE
-      WHEN search_basis = 'Consent'           THEN 'Consent'
-      WHEN search_basis LIKE '%Probable%'     THEN 'Probable cause'
-      ELSE 'Other'
+      WHEN search_basis = 'Consent'       THEN 'Consent'
+      WHEN search_basis LIKE '%Probable%' THEN 'Probable cause'
     END,
     contraband_found
   FROM ca_san_francisco_2020_04_01
   WHERE search_conducted = 1
     AND date BETWEEN '2016-01-01' AND '2019-12-31'
+    AND (search_basis = 'Consent' OR search_basis LIKE '%Probable%')
 
   UNION ALL
 
   SELECT
-    'OAK‑PD' AS agency,
+    'OAK-PD' AS agency,
     CASE
-      WHEN search_basis = 'Consent'           THEN 'Consent'
-      WHEN search_basis LIKE '%Probable%'     THEN 'Probable cause'
-      ELSE 'Other'
+      WHEN search_basis = 'Consent'       THEN 'Consent'
+      WHEN search_basis LIKE '%Probable%' THEN 'Probable cause'
     END,
     contraband_found
   FROM ca_oakland_2020_04_01
   WHERE search_conducted = 1
     AND date BETWEEN '2016-01-01' AND '2019-12-31'
+    AND (search_basis = 'Consent' OR search_basis LIKE '%Probable%')
 ) AS all_searches
 GROUP BY agency, reason_group
-HAVING COUNT(*) >= 50
 ORDER BY agency, hit_rate_pct DESC;
 
 ```
 
-AZ‑ST: exceptionally high hit‐rates on both Consent (88.1%) and Probable cause (83.9%). \n OAK‑PD: moderate productivity on Probable cause (36.9%) and Other (26.6%), but very low yield on Consent (12.5%). \n SF‑PD: only Consent (13.5%) and Other (21.2%) pass the 50‐search cutoff; Probable‑cause searches were too rare to include. \n
+AZ-ST: very high hit‐rates on both Consent (88.1%) and Probable cause (83.9%). \n OAK-PD: moderate productivity on Probable cause (36.9%), lower on Consent (12.5%).\n SF-PD: Consent (13.5%) and Probable cause (21.2%) both yield contraband, though Probable cause stops were relatively rare.
 
 ## Graphs
 
@@ -155,30 +154,32 @@ SELECT
   reason_group,
   ROUND(100.0 * SUM(contraband_found) / COUNT(*), 1) AS hit_rate_pct
 FROM (
-  SELECT
-    CASE
-      WHEN search_basis = 'Consent'           THEN 'Consent'
-      WHEN search_basis LIKE '%Probable%'     THEN 'Probable cause'
-      ELSE 'Other'
+  SELECT CASE
+      WHEN search_basis = 'Consent'       THEN 'Consent'
+      WHEN search_basis LIKE '%Probable%' THEN 'Probable cause'
     END AS reason_group,
     contraband_found
-  FROM az_statewide_2020_04_01 WHERE search_conducted=1 AND date BETWEEN '2016-01-01' AND '2019-12-31'
+  FROM az_statewide_2020_04_01
+  WHERE search_conducted = 1 AND date BETWEEN '2016-01-01' AND '2019-12-31'
+    AND (search_basis = 'Consent' OR search_basis LIKE '%Probable%')
   UNION ALL
   SELECT CASE
-      WHEN search_basis = 'Consent' THEN 'Consent'
+      WHEN search_basis = 'Consent'       THEN 'Consent'
       WHEN search_basis LIKE '%Probable%' THEN 'Probable cause'
-      ELSE 'Other'
     END,
     contraband_found
-  FROM ca_san_francisco_2020_04_01 WHERE search_conducted=1 AND date BETWEEN '2016-01-01' AND '2019-12-31'
+  FROM ca_san_francisco_2020_04_01
+  WHERE search_conducted = 1 AND date BETWEEN '2016-01-01' AND '2019-12-31'
+    AND (search_basis = 'Consent' OR search_basis LIKE '%Probable%')
   UNION ALL
   SELECT CASE
-      WHEN search_basis = 'Consent' THEN 'Consent'
+      WHEN search_basis = 'Consent'       THEN 'Consent'
       WHEN search_basis LIKE '%Probable%' THEN 'Probable cause'
-      ELSE 'Other'
     END,
     contraband_found
-  FROM ca_oakland_2020_04_01 WHERE search_conducted=1 AND date BETWEEN '2016-01-01' AND '2019-12-31'
+  FROM ca_oakland_2020_04_01
+  WHERE search_conducted = 1 AND date BETWEEN '2016-01-01' AND '2019-12-31'
+    AND (search_basis = 'Consent' OR search_basis LIKE '%Probable%')
 ) AS t
 GROUP BY reason_group
 ORDER BY hit_rate_pct DESC;
@@ -191,7 +192,6 @@ ggplot(df_overall, aes(
   fill = reason_group
 )) +
   geom_col() +
-  scale_fill_brewer(palette = "Set3") +
   labs(
     title = "Overall Contraband Hit Rate by Search Basis",
     x     = "Search Basis",
@@ -212,38 +212,35 @@ SELECT
   reason_group,
   ROUND(100.0 * SUM(contraband_found) / COUNT(*), 1) AS hit_rate_pct
 FROM (
-  SELECT
-    'AZ‑ST' AS agency,
+  SELECT 'AZ-ST' AS agency,
     CASE
       WHEN search_basis = 'Consent'       THEN 'Consent'
       WHEN search_basis LIKE '%Probable%' THEN 'Probable cause'
-      ELSE 'Other'
     END AS reason_group,
     contraband_found
-  FROM az_statewide_2020_04_01 WHERE search_conducted=1 AND date BETWEEN '2016-01-01' AND '2019-12-31'
+  FROM az_statewide_2020_04_01
+  WHERE search_conducted = 1 AND date BETWEEN '2016-01-01' AND '2019-12-31'
+    AND (search_basis = 'Consent' OR search_basis LIKE '%Probable%')
   UNION ALL
-  SELECT
-    'SF‑PD',
-    CASE
+  SELECT 'SF-PD', CASE
       WHEN search_basis = 'Consent'       THEN 'Consent'
       WHEN search_basis LIKE '%Probable%' THEN 'Probable cause'
-      ELSE 'Other'
     END,
     contraband_found
-  FROM ca_san_francisco_2020_04_01 WHERE search_conducted=1 AND date BETWEEN '2016-01-01' AND '2019-12-31'
+  FROM ca_san_francisco_2020_04_01
+  WHERE search_conducted = 1 AND date BETWEEN '2016-01-01' AND '2019-12-31'
+    AND (search_basis = 'Consent' OR search_basis LIKE '%Probable%')
   UNION ALL
-  SELECT
-    'OAK‑PD',
-    CASE
+  SELECT 'OAK-PD', CASE
       WHEN search_basis = 'Consent'       THEN 'Consent'
       WHEN search_basis LIKE '%Probable%' THEN 'Probable cause'
-      ELSE 'Other'
     END,
     contraband_found
-  FROM ca_oakland_2020_04_01 WHERE search_conducted=1 AND date BETWEEN '2016-01-01' AND '2019-12-31'
+  FROM ca_oakland_2020_04_01
+  WHERE search_conducted = 1 AND date BETWEEN '2016-01-01' AND '2019-12-31'
+    AND (search_basis = 'Consent' OR search_basis LIKE '%Probable%')
 ) AS t
 GROUP BY agency, reason_group
-HAVING COUNT(*) >= 50
 ORDER BY agency, hit_rate_pct DESC;
 ")
 
@@ -253,7 +250,6 @@ ggplot(df_agency, aes(
   fill = reason_group
 )) +
   geom_col(show.legend = FALSE) +
-  scale_fill_brewer(palette = "Set2") +
   facet_wrap(~ agency) +
   labs(
     title = "Contraband Hit Rate by Search Basis, by Agency",
@@ -262,6 +258,7 @@ ggplot(df_agency, aes(
   ) +
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 25, hjust = 1))
+
 ```
 
 ## Discussion

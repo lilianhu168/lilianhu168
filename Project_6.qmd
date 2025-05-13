@@ -110,17 +110,16 @@ ggplot(top_stock_pairs, aes(x = ticker1, y = ticker2, size = n)) +
 
 ## Extra: Sentiment Analysis
 
-**Goal:** Gauge positive vs. negative tone in financial tweets.
+**Goal:** Compare positive vs. negative tone in financial tweets.
 
  - **Approach:**\
 1. Tokenize cleaned tweet text.\
-2. Join tokens with Bing sentiment lexicon.\
+2. Join tokens with Loughran-McDonald lexicon.\
 3. Compute net sentiment per ticker (positive − negative counts).
 
 ## Sentiment Analysis
 
 - Using tidytext and textdata
-- Using Loughran-McDonald lexicon
 - inner join 
 
 ```{r}
@@ -156,7 +155,7 @@ company_fin <- tweet_scores_fin |>
 
 ```
 ___ 
-```{r}
+```{r, echo=FALSE, fig.width=14, fig.height=8, out.width="100%"}
 
 top20_fin <- company_fin |> 
   slice_max(order_by = abs(net_sent), n = 20)
@@ -177,3 +176,5 @@ ggplot(top20_fin,
 
 ```
 
+---
+## Thank You

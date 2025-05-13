@@ -5,22 +5,29 @@ author: "Lilian Hu"
 date: "February 12, 2025"
 format: html
 code-copy: true
+execute:
+  echo: true
+  warning: false
+  message: false
 ---
 
 ### Introduction
 
-The dataset used in this analysis comes from [TidyTuesday](https://github.com/rfordatascience/tidytuesday/blob/main/data/2021/2021-10-05/readme.md), originally sourced from [Data World](https://data.world/zendoll27/registered-nursing-labor-stats-1998-2020).] This data set provides information on the employment and wages of registered nurses (RNs) across U.S. states over multiple years, making it a valuable resource for analyzing trends in the nursing workforce.
+The dataset used in this analysis comes from [TidyTuesday](https://github.com/rfordatascience/tidytuesday/blob/main/data/2021/2021-10-05/readme.md), originally sourced from [Data World](https://data.world/zendoll27/registered-nursing-labor-stats-1998-2020).\ This data set provides information on the employment and wages of registered nurses (RNs) across U.S. states over multiple years, making it a valuable resource for analyzing trends in the nursing workforce.
 
 For this analysis, I selected ten states from the East and West Coasts to compare RN employment and wages. The selection was based on a mix of states with varying geographical, economic, and healthcare profiles. High-employment and high-wage states such as California and New York were included alongside states with different economic and healthcare characteristics, such as West Virginia and Nevada. This allows for a more comprehensive understanding of how factors like urbanization, cost of living, and healthcare infrastructure impact RN workforce distribution and salary trends.
 
 ## Load Packages and Data Sets
+
 ```{r}
 library(tidyverse)
 
 tuesdata <- tidytuesdayR::tt_load(2021, week = 41)
 nurses <- tuesdata$nurses
 ```
-### Analysis 
+
+### Analysis
+
 ```{r}
 library(scales)
 nurses |> 
