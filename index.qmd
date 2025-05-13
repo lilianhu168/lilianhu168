@@ -23,6 +23,4 @@ about:
 
 Pomona College \| Bachelors of Arts \| Economics and Data Science
 
-## Final Presentation
-
-[ View the "Twitter Finance Text Analysis + Sentiment Extension" slides](twitter-analysis/){target="_blank"}
+## 
