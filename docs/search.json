@@ -355,5 +355,12 @@
     "title": "Twitter Finance Text Analysis + Sentiment Extension",
     "section": "Use Finance Specific Lexicon",
     "text": "Use Finance Specific Lexicon\n\n# ── 0  Prereqs ───────────────────────────────────────────────────\nlibrary(tidyverse)\nlibrary(tidytext)\nlibrary(textdata)\n\n# tweets already cleaned earlier; make sure it has tweet_id & text_clean\nif (!\"tweet_id\" %in% names(tweets)) {\n  tweets &lt;- tweets %&gt;% mutate(tweet_id = row_number())\n}\n\n# ── 1  Tokenise tweets ───────────────────────────────────────────\ntweet_words &lt;- tweets %&gt;% \n  select(tweet_id, company_name, text_clean) %&gt;% \n  unnest_tokens(word, text_clean)\n\n# ── 2  Loughran-McDonald finance lexicon ────────────────────────\nlm_lex &lt;- lexicon_loughran() %&gt;% \n  filter(sentiment %in% c(\"positive\", \"negative\"))\n\ntweet_sent_fin &lt;- tweet_words %&gt;% \n  inner_join(lm_lex, by = \"word\") %&gt;% \n  mutate(score = if_else(sentiment == \"positive\", 1, -1))\n\n# ── 3  Score tweets & companies ─────────────────────────────────\ntweet_scores_fin &lt;- tweet_sent_fin %&gt;% \n  group_by(tweet_id, company_name) %&gt;% \n  summarise(tweet_score = sum(score), .groups = \"drop\")\n\ncompany_fin &lt;- tweet_scores_fin %&gt;% \n  group_by(company_name) %&gt;% \n  summarise(net_sent = sum(tweet_score),\n            n_tweets = n(), .groups = \"drop\") %&gt;% \n  filter(n_tweets &gt;= 50)                         # tweak cutoff if you like\n\n# ── 4  Top-20 bar chart ─────────────────────────────────────────\ntop20_fin &lt;- company_fin %&gt;% \n  slice_max(order_by = abs(net_sent), n = 20)\n\nggplot(top20_fin,\n       aes(x = reorder(company_name, .data$net_sent),\n           y = net_sent,\n           fill = net_sent &gt; 0)) +\n  geom_col(show.legend = FALSE) +\n  coord_flip() +\n  labs(title = \"Net sentiment in tweets (Loughran-McDonald lexicon)\",\n       x = \"Company\",\n       y = \"Positive – Negative word count\") +\n  scale_fill_manual(values = c(\"TRUE\" = \"steelblue\",\n                               \"FALSE\" = \"firebrick\")) +\n  theme_minimal()"
+  },
+  {
+    "objectID": "index.html#final-presentation",
+    "href": "index.html#final-presentation",
+    "title": "Lilian Hu",
+    "section": "Final Presentation",
+    "text": "Final Presentation\nView the “Twitter Finance Text Analysis + Sentiment Extension” slides"
   }
 ]
